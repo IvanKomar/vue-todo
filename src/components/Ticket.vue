@@ -2,8 +2,8 @@
   <div>
     <form @submit.prevent="ticketHandler">
       <div class="btn-undo-rendo-section" v-show="mode === 'edit'">
-        <button v-show="status === 'updated' || status === 'rendoded'" class="btn-ticket" @click.prevent="undo">Undo</button>
-        <button v-show="status === 'undoded'" class="btn-ticket" @click.prevent="rendo">Rendo</button>
+        <button v-show="status === 'updated' || status === 'rendoded'" class="btn-ticket undo-redo" @click.prevent="undo">Отменить изменения</button>
+        <button v-show="status === 'undoded'" class="btn-ticket undo-redo" @click.prevent="rendo">Вернуть изменения</button>
       </div>
       <label for="ticketTitle">Название заметки</label>
       <input
@@ -90,7 +90,7 @@
           type="submit"
           class="btn-ticket to-create" 
         >
-          {{mode === 'create' ? 'Создать' : 'Обновить'}}
+          {{mode === 'create' ? 'Создать' : 'Сохранить'}}
         </button>
         <button class="btn-ticket" @click.prevent="goBack">На главную</button>
         <button v-show="mode === 'edit'" class="btn-ticket btn-ticket-delete" @click.prevent="showDeleteModal">Удалить</button>
@@ -256,6 +256,23 @@ export default {
     margin-left: 40px;
     margin-bottom: 30px;
   }
+  .btn-ticket {
+  width: 100px;
+  height: 40px;
+  line-height: 40px;
+  font-weight: 600;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  margin-right: 30px;
+  font-size: 1em;
+}
+  .undo-redo {
+    width: auto;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
   label {
     align-self: flex-start;
     margin-left: 45px;
@@ -389,18 +406,7 @@ input[type=checkbox]:checked:disabled + label:before {
   background-color: rgb(255, 30, 30);
   color: white;
 }
-.btn-ticket {
-  width: 100px;
-  height: 40px;
-  line-height: 40px;
-  font-weight: 600;
-  outline: none;
-  border: none;
-  cursor: pointer;
-  border-radius: 10px;
-  margin-right: 30px;
-  font-size: 1em;
-}
+
 .btn-ticket-section {
   justify-content: flex-start;
   margin-left: 50px;
