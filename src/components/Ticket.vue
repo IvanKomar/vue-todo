@@ -126,11 +126,17 @@ export default {
         const oldTicket = this.undoTicketById(id)
         this.undoTicket(oldTicket)
         this.status = 'undoded'
+        this.ticketTitle = oldTicket.title
+        this.todos = oldTicket.todos
       }
     },
     rendo() {
       if (this.status === 'undoded') {
+        const id = +this.$route.params.id
+        const prevTicket = this.rendoTicketById(id)
         this.status = 'rendoded'
+        this.ticketTitle = prevTicket.title
+        this.todos = prevTicket.todos
       }
     },
     ticketHandler() {
@@ -224,17 +230,7 @@ export default {
     }
   },
   updated() {
-    const id = +this.$route.params.id
-    if (this.status === 'undoded') {
-      const oldTicket = this.undoTicketById(id)
-      this.ticketTitle = oldTicket.title
-      this.todos = oldTicket.todos
-    } 
-    if (this.status === 'rendoded') {
-      const prevTicket = this.rendoTicketById(id)
-      this.ticketTitle = prevTicket.title
-      this.todos = prevTicket.todos
-    }
+
     if (this.$route.path.includes('edit')) {
       localStorage.setItem('todos', JSON.stringify(this.todos))
     }
