@@ -1,23 +1,31 @@
 export default {
   state: {
     tickets: [],
-    ticketBeforeUpdate: null
+    undoTickets: [],
+    rendoTickets: []
   },
-  actions: {
-    // updatedTicketAction({commit, getters}, id) {
-    //   commit()
-    // }
-  },
+  actions: {},
   mutations: {
     addNewTicket(state, newTicket) {
       state.tickets.push(newTicket)
     }, 
     updateTicket(state, updatedTicket) {
+      state.undoTickets = state.undoTickets.filter(t => t.id !== updatedTicket.id)
+      state.rendoTickets = state.rendoTickets.filter(t => t.id !== updatedTicket.id)
       const index = state.tickets.findIndex(ticket => ticket.id === updatedTicket.id)
+      state.undoTickets.push({...state.tickets[index]})
       state.tickets.splice(index, 1, updatedTicket)
+    },
+    undoTicket(state, undodedTicket) {
+      const index = state.tickets.findIndex(ticket => ticket.id === undodedTicket.id)
+      if (state.rendoTickets.findIndex(t => t.id === undodedTicket.id) < 0) {
+        state.rendoTickets.push({...state.tickets[index]})
+      }
     },
     deleteTicket(state, ticket) {
       state.tickets = state.tickets.filter(t => t.id !== ticket.id)
+      state.undoTickets = state.undoTickets.filter(t => t.id !== ticket.id)
+      state.rendoTickets = state.rendoTickets.filter(t => t.id !== ticket.id)
     },
   },
   getters: {
@@ -34,6 +42,12 @@ export default {
     },
     ticketById: state => id => {
       return state.tickets.find( ticket => ticket.id  === id)
+    },
+    undoTicketById: state => id => {
+      return state.undoTickets.find( ticket => ticket.id === id)
+    },
+    rendoTicketById: state => id => {
+      return state.rendoTickets.find(ticket => ticket.id === id) 
     }
   }
 }

@@ -1,8 +1,12 @@
 <template>
   <div>
     <form @submit.prevent="ticketHandler">
+      <div class="btn-undo-rendo-section" v-show="mode === 'edit'">
+        <button v-show="status === 'updated' || status === 'rendoded'" class="btn-ticket" @click.prevent="undo">Undo</button>
+        <button v-show="status === 'undoded'" class="btn-ticket" @click.prevent="rendo">Rendo</button>
+      </div>
       <label for="ticketTitle">Название заметки</label>
-      <input 
+      <input
         v-model="ticketTitle" 
         class="ticket-input" 
         type="text" 
@@ -103,6 +107,7 @@ export default {
   name: 'CreateTicketComponent',
   data: () => ({
     mode: 'create',
+    status: 'created',
     beforeUpdateTicket: null,
     ticketTitle: '',
     todoInputText: '',
@@ -111,28 +116,42 @@ export default {
     editTodoIndex: null
   }),
   computed: {
-    ...mapGetters(['ticketById'])
+    ...mapGetters(['ticketById', 'undoTicketById', 'rendoTicketById'])
   },
- 
   methods: {
-    ...mapMutations(['addNewTicket', 'updateTicket', 'deleteTicket', 'openModal', 'closeModal']),
-    ticketHandler() {
-      if (this.mode === 'create') {
-        this.addNewTicket({
-          id: Date.now(), 
-          title: this.ticketTitle, 
-          todos: this.todos
-        })
-      } else if (this.mode === 'edit') {
-        this.updateTicket({
-          id: +this.$route.params.id,
-          title: this.ticketTitle,
-          todos: this.todos
-        })
+    ...mapMutations(['addNewTicket', 'updateTicket', 'deleteTicket', 'openModal', 'closeModal', 'undoTicket']),
+    undo() {
+      if (this.status === 'updated' || this.status === 'rendoded') {
+        const id = +this.$route.params.id
+        const oldTicket = this.undoTicketById(id)
+        this.undoTicket(oldTicket)
+        this.status = 'undoded'
       }
-      this.ticketTitle = ''
-      this.todos = []
-      this.$router.push('/')
+    },
+    rendo() {
+      if (this.status === 'undoded') {
+        this.status = 'rendoded'
+      }
+    },
+    ticketHandler() {
+        if (this.mode === 'create') {
+          this.addNewTicket({
+            id: Date.now(), 
+            title: this.ticketTitle, 
+            todos: this.todos,
+            status: 'created'
+          })
+        } else if (this.mode === 'edit') {
+          this.updateTicket({
+            id: +this.$route.params.id,
+            title: this.ticketTitle,
+            todos: this.todos,
+            status: 'updated'
+          })
+        }
+        this.$router.push('/')
+        this.ticketTitle = ''
+        this.todos = []
     },
     showDeleteModal() {
       const id = +this.$route.params.id
@@ -174,7 +193,7 @@ export default {
       this.todos.splice(idx, 1, todoCopy)
     },
     onEditHandler(idx) {
-      this.editTodo = this.todos.find( (todo, index) => index === idx)
+      this.editTodo = {...this.todos.find( (todo, index) => index === idx)}
       this.todoInputText = this.editTodo.text
       this.editTodoIndex = idx
     },
@@ -199,9 +218,29 @@ export default {
       const id = +this.$route.params.id
       const ticket = this.ticketById(id)
       this.ticketTitle = ticket.title
-      this.todos = [...ticket.todos]
+      this.todos = localStorage.getItem('todos') ? JSON.parse(localStorage.getItem('todos')) : [...ticket.todos]
       this.beforeUpdateTicket = {...ticket}
+      this.status = this.beforeUpdateTicket.status
     }
+  },
+  updated() {
+    const id = +this.$route.params.id
+    if (this.status === 'undoded') {
+      const oldTicket = this.undoTicketById(id)
+      this.ticketTitle = oldTicket.title
+      this.todos = oldTicket.todos
+    } 
+    if (this.status === 'rendoded') {
+      const prevTicket = this.rendoTicketById(id)
+      this.ticketTitle = prevTicket.title
+      this.todos = prevTicket.todos
+    }
+    if (this.$route.path.includes('edit')) {
+      localStorage.setItem('todos', JSON.stringify(this.todos))
+    }
+  },
+  beforeDestroy() {
+    localStorage.removeItem('todos')
   },
 }
 </script>
@@ -211,6 +250,11 @@ export default {
     display: flex;
     flex-direction: column;
     margin-top: 40px;
+  }
+  .btn-undo-rendo-section {
+    align-self: flex-end;
+    margin-left: 40px;
+    margin-bottom: 30px;
   }
   label {
     align-self: flex-start;
